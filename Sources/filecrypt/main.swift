@@ -30,14 +30,14 @@ let encrypt = result["encrypt"] as? Int == 1
 let decrypt = result["decrypt"] as? Int == 1
 let filepath = result["<filepath>"] as? String
 
-guard let filepath = filepath, encrypt && decrypt else {
+guard let filepath = filepath, encrypt ^^ decrypt else {
     logger.fatal("Docopt failed. Consider opening an issue on Github.")
     exit(1)
 }
 
 if encrypt {
-    let c = try Encryptor(filepath: filepath)
-    c.crypt()
+    let c = try Encryptor(filepath: filepath, logger: logger)
+    try c.crypt(withPassword: "abc")
 } else if decrypt {
     let c = Decryptor(filepath: filepath)
     c.crypt()

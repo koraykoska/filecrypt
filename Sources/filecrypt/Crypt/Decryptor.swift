@@ -9,10 +9,7 @@ import Foundation
 
 class Decryptor {
 
-    let filepath: String
-
     init(filepath: String) {
-        self.filepath = filepath
     }
 
     func crypt() {

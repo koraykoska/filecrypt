@@ -20,4 +20,9 @@ struct CryptException {
         case fileAlreadyExists(path: String)
         case cannotWriteFile(path: String)
     }
+
+    enum Crypt: Error {
+
+        case encryptionFailed(details: String)
+    }
 }
