@@ -36,9 +36,20 @@ guard let filepath = filepath, encrypt ^^ decrypt else {
 }
 
 if encrypt {
+    var pass: String
+    var validation: String
+
+    (pass, validation) = CLI.getPasswordWithValidation()
+    while pass != validation {
+        logger.warn("Your passwords didn't match. Please try again.")
+        (pass, validation) = CLI.getPasswordWithValidation()
+    }
+
     let c = try Encryptor(filepath: filepath, logger: logger)
-    try c.crypt(withPassword: "abc")
+    try c.crypt(withPassword: pass)
 } else if decrypt {
+    let pass = CLI.getPassword()
+
     let c = try Decryptor(filepath: filepath, logger: logger)
-    try c.crypt(withPassword: "abc")
+    try c.crypt(withPassword: pass)
 }
