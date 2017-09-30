@@ -19,21 +19,26 @@ class Encryptor {
     }
 
     func crypt(withPassword password: String) throws {
+        logger?.debug("Generating password hash and secure random iv...")
         guard let pass = Digest(using: .sha256).update(string: password)?.final(), let iv = try? Random.generate(byteCount: 16) else {
             throw CryptException.Crypt.encryptionFailed(details: "SHA256 digest or random byte generation failed. Consider opening an issue on Github.")
         }
         var clearData: Data = Data()
 
+        logger?.debug("Reading cleartext data...")
+
         for d in reader {
             clearData.append(d)
         }
+
+        logger?.debug("Zero padding data...")
 
         var textToCipher = [UInt8](clearData)
         if textToCipher.count % Cryptor.Algorithm.aes256.blockSize != 0 {
             textToCipher = CryptoUtils.zeroPad(byteArray: textToCipher, blockSize: Cryptor.Algorithm.aes256.blockSize)
         }
 
-        logger?.debug("Read data: \(String(data: clearData, encoding: .utf8) ?? "*No data available*")")
+        logger?.debug("Encrypting...")
 
         guard let c = Cryptor(operation: .encrypt, algorithm: .aes256, options: .none, key: pass, iv: iv).update(byteArray: textToCipher) else {
             throw CryptException.Crypt.encryptionFailed(details: "Cryptor failed while injecting the clear data. Consider opening an issue on Github.")
@@ -42,20 +47,14 @@ class Encryptor {
             throw CryptException.Crypt.encryptionFailed(details: "Cryptor failed. Status: \(c.status.description)")
         }
 
-        let str = final.string
-        logger?.debug("IV: \(iv.string)")
-        logger?.debug("Crypted data: \(str)")
+        let encryptedPath = "\(reader.filepath).secured"
 
-        logger?.debug("Writing encrypted file...")
+        logger?.debug("Writing encrypted data to \(encryptedPath)...")
 
-        let writer = try BufferedWriter(filepath: "\(reader.filepath).secured")
+        let writer = try BufferedWriter(filepath: encryptedPath)
         // Write iv
         writer.write(data: CryptoUtils.data(from: iv))
         // Write encrypted data
         writer.write(data: CryptoUtils.data(from: final))
-
-        // Example decrypting
-        let c2 = Cryptor(operation: .decrypt, algorithm: .aes256, options: .none, key: pass, iv: iv).update(byteArray: final)?.final()
-        logger?.debug("CLEAR: \(c2?.string ?? "*wut*")")
     }
 }
