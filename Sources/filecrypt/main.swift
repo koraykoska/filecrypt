@@ -39,6 +39,6 @@ if encrypt {
     let c = try Encryptor(filepath: filepath, logger: logger)
     try c.crypt(withPassword: "abc")
 } else if decrypt {
-    let c = Decryptor(filepath: filepath)
-    c.crypt()
+    let c = try Decryptor(filepath: filepath, logger: logger)
+    try c.crypt(withPassword: "abc")
 }

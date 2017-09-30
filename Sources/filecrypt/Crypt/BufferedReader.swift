@@ -54,16 +54,6 @@ class BufferedReader {
     }
 
     /**
-     * Returns the file size of the underlaying file or throws if it can't be accessed.
-     *
-     * - returns: The file size.
-     */
-    func fileSize() throws -> UInt64 {
-        let attr = try FileManager.default.attributesOfItem(atPath: filepath) as NSDictionary
-        return attr.fileSize()
-    }
-
-    /**
      * Reads and returns the next `chunkSize` bytes from the underlaying file.
      *
      * - returns: The next `chunkSize` Bytes as Data or `nil` if EOF was already reached.

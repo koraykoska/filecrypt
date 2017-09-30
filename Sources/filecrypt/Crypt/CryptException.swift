@@ -24,5 +24,6 @@ struct CryptException {
     enum Crypt: Error {
 
         case encryptionFailed(details: String)
+        case decryptionFailed(details: String)
     }
 }

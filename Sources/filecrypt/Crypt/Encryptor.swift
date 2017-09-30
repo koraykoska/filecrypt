@@ -19,8 +19,9 @@ class Encryptor {
     }
 
     func crypt(withPassword password: String) throws {
-        let pass = CryptoUtils.byteArray(from: password)
-        let iv = CryptoUtils.byteArray(fromHex: "00000000000000000000000000000000")
+        guard let pass = Digest(using: .sha256).update(string: password)?.final(), let iv = try? Random.generate(byteCount: 16) else {
+            throw CryptException.Crypt.encryptionFailed(details: "SHA256 digest or random byte generation failed. Consider opening an issue on Github.")
+        }
         var clearData: Data = Data()
 
         for d in reader {
@@ -41,7 +42,20 @@ class Encryptor {
             throw CryptException.Crypt.encryptionFailed(details: "Cryptor failed. Status: \(c.status.description)")
         }
 
-        let str = final.map { String(format: "%c", $0) }.joined()
+        let str = final.string
+        logger?.debug("IV: \(iv.string)")
         logger?.debug("Crypted data: \(str)")
+
+        logger?.debug("Writing encrypted file...")
+
+        let writer = try BufferedWriter(filepath: "\(reader.filepath).secured")
+        // Write iv
+        writer.write(data: CryptoUtils.data(from: iv))
+        // Write encrypted data
+        writer.write(data: CryptoUtils.data(from: final))
+
+        // Example decrypting
+        let c2 = Cryptor(operation: .decrypt, algorithm: .aes256, options: .none, key: pass, iv: iv).update(byteArray: final)?.final()
+        logger?.debug("CLEAR: \(c2?.string ?? "*wut*")")
     }
 }
