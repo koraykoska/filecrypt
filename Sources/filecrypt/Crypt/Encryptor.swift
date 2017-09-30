@@ -47,6 +47,12 @@ class Encryptor {
             throw CryptException.Crypt.encryptionFailed(details: "Cryptor failed. Status: \(c.status.description)")
         }
 
+        logger?.debug("Generating HMAC signature...")
+
+        guard let hmac = HMAC(using: .sha256, key: pass).update(byteArray: textToCipher)?.final() else {
+            throw CryptException.Crypt.encryptionFailed(details: "HMAC signature generation failed...")
+        }
+
         let encryptedPath = "\(reader.filepath).secured"
 
         logger?.debug("Writing encrypted data to \(encryptedPath)...")
@@ -54,6 +60,8 @@ class Encryptor {
         let writer = try BufferedWriter(filepath: encryptedPath)
         // Write iv
         writer.write(data: CryptoUtils.data(from: iv))
+        // Write hmac
+        writer.write(data: CryptoUtils.data(from: hmac))
         // Write encrypted data
         writer.write(data: CryptoUtils.data(from: final))
     }

@@ -29,15 +29,26 @@ class Decryptor {
         for d in reader {
             encryptedData.append(d)
         }
+        var textToUnCipher = [UInt8](encryptedData)
 
         logger?.debug("Extracting iv...")
 
-        var textToUnCipher = [UInt8](encryptedData)
         var iv = [UInt8]()
         // Remove first 16 bytes and save as iv
         for _ in 0..<16 {
             if textToUnCipher.count > 0 {
                 iv.append(textToUnCipher[0])
+                textToUnCipher.remove(at: 0)
+            }
+        }
+
+        logger?.debug("Extracting hmac signature...")
+
+        var hmac = [UInt8]()
+        // Remove first 32 bytes and save as hmac
+        for _ in 0..<32 {
+            if textToUnCipher.count > 0 {
+                hmac.append(textToUnCipher[0])
                 textToUnCipher.remove(at: 0)
             }
         }
@@ -49,6 +60,18 @@ class Decryptor {
         }
         guard let final = c.final() else {
             throw CryptException.Crypt.decryptionFailed(details: "Cryptor failed. Status: \(c.status.description)")
+        }
+
+        logger?.debug("Generating HMAC signature...")
+
+        guard let hmacClear = HMAC(using: .sha256, key: pass).update(byteArray: final)?.final() else {
+            throw CryptException.Crypt.encryptionFailed(details: "HMAC signature generation failed...")
+        }
+
+        logger?.debug("Checking HMAC signature...")
+
+        guard hmac.elementsEqual(hmacClear) else {
+            throw CryptException.Crypt.encryptionFailed(details: "Signature verification failed. It looks like your password is incorrect. Please re-check it.")
         }
 
         var decryptedPath = "\(reader.filepath).cleartext"
