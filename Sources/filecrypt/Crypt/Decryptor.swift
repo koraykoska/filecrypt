@@ -18,7 +18,7 @@ class Decryptor {
         self.logger = logger
     }
 
-    func crypt(withPassword password: String) throws {
+    func crypt(withPassword password: String, dry: Bool = false) throws {
         guard let pass = Digest(using: .sha256).update(string: password)?.final() else {
             throw CryptException.Crypt.decryptionFailed(details: "SHA256 digest failed. Consider opening an issue on Github.")
         }
@@ -74,16 +74,24 @@ class Decryptor {
             throw CryptException.Crypt.encryptionFailed(details: "Signature verification failed. It looks like your password is incorrect. Please re-check it.")
         }
 
-        var decryptedPath = "\(reader.filepath).cleartext"
-        var decryptedPathComponents = reader.filepath.components(separatedBy: ".")
-        if decryptedPathComponents.count > 1 && reader.filepath.hasSuffix(".secured") {
-            decryptedPathComponents.removeLast()
-            decryptedPath = decryptedPathComponents.joined(separator: ".")
-        }
-        logger?.debug("Writing decrypted data to \(decryptedPath)...")
+        if !dry {
+            var decryptedPath = "\(reader.filepath).cleartext"
+            var decryptedPathComponents = reader.filepath.components(separatedBy: ".")
+            if decryptedPathComponents.count > 1 && reader.filepath.hasSuffix(".secured") {
+                decryptedPathComponents.removeLast()
+                decryptedPath = decryptedPathComponents.joined(separator: ".")
+            }
+            logger?.debug("Writing decrypted data to \(decryptedPath)...")
 
-        let writer = try BufferedWriter(filepath: decryptedPath)
-        // Write decrypted data
-        writer.write(data: CryptoUtils.data(from: final))
+            let writer = try BufferedWriter(filepath: decryptedPath)
+            // Write decrypted data
+            writer.write(data: CryptoUtils.data(from: final))
+        } else {
+            // TODO: Print should be done in main.swift.
+            let data = String(data: CryptoUtils.data(from: final), encoding: .utf8)
+            print()
+            print("-------- Decrypted Data --------")
+            print(data ?? "*No data*")
+        }
     }
 }

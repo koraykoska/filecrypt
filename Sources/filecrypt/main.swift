@@ -6,18 +6,19 @@ let help = """
 Encrypts/Decrypts a given file with a given password.
 
 Usage:
-  \(programName) (encrypt | decrypt) <filepath>
+  \(programName) (encrypt | decrypt | cat) <filepath>
   \(programName) (-h | --help)
 
 Examples:
   \(programName) encrypt supersecure.txt
   \(programName) decrypt supersecure.txt.encrypted
+  \(programName) cat supersecure.txt.encrypted
 
 Options:
   -h, --help  Show this screen.
 """
 
-let logger = Logger(level: .debug)
+let logger = Logger(level: .warn)
 
 var arguments = CommandLine.arguments
 if arguments.count > 0 {
@@ -28,9 +29,10 @@ let result = Docopt.parse(help, argv: arguments, help: true, version: "1.0")
 
 let encrypt = result["encrypt"] as? Int == 1
 let decrypt = result["decrypt"] as? Int == 1
+let cat = result["cat"] as? Int == 1
 let filepath = result["<filepath>"] as? String
 
-guard let filepath = filepath, encrypt ^^ decrypt else {
+guard let filepath = filepath, (encrypt ^^ decrypt) ^^ cat else {
     logger.fatal("Docopt failed. Consider opening an issue on Github.")
     exit(1)
 }
@@ -53,6 +55,11 @@ do {
 
         let c = try Decryptor(filepath: filepath, logger: logger)
         try c.crypt(withPassword: pass)
+    } else if cat {
+        let pass = CLI.getPassword()
+
+        let c = try Decryptor(filepath: filepath, logger: logger)
+        try c.crypt(withPassword: pass, dry: true)
     }
 } catch {
     if let e = error as? CryptException.In {
