@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import ObjectiveC
 
 /**
  * A buffered reader for files.
@@ -31,9 +30,16 @@ class BufferedReader {
      */
     init(filepath: String, chunkSize: Int = 4096) throws {
         var isDirectory: ObjCBool = true
-        guard FileManager.default.fileExists(atPath: filepath, isDirectory: &isDirectory), !isDirectory.boolValue else {
+        #if os(Linux)
+            guard FileManager.default.fileExists(atPath: filepath, isDirectory: &isDirectory), !isDirectory else {
+                throw CryptException.In.fileDoesNotExist(path: filepath)
+            }
+        #else
+            guard FileManager.default.fileExists(atPath: filepath, isDirectory: &isDirectory), !isDirectory.boolValue else {
             throw CryptException.In.fileDoesNotExist(path: filepath)
-        }
+            }
+        #endif
+
         // Does not guarantee that our file is readable because of possible file system race conditions.
         // But it helps terminating gracefully before trying to read the file if it is indeed not readable.
         // Better for debugging...
