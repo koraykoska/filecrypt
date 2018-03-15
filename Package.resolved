@@ -15,17 +15,8 @@
         "repositoryURL": "https://github.com/IBM-Swift/BlueCryptor.git",
         "state": {
           "branch": null,
-          "revision": "8343677ebcce67930404c8863bdecd0030126dfe",
-          "version": "0.8.18"
-        }
-      },
-      {
-        "package": "Docopt",
-        "repositoryURL": "https://github.com/Ybrin/docopt.swift.git",
-        "state": {
-          "branch": null,
-          "revision": "a15f26f46b4e5dcc24dc2b121d164ce1a835da53",
-          "version": "0.6.6"
+          "revision": "de20ec9af166d779a08c16f05146f4b9124478d0",
+          "version": "0.8.27"
         }
       }
     ]

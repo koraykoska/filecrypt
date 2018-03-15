@@ -1,5 +1,4 @@
 import Foundation
-import Docopt
 
 let programName = CommandLine.arguments.first ?? "filecrypt"
 let help = """
@@ -25,20 +24,25 @@ if arguments.count > 0 {
     arguments.remove(at: 0)
 }
 
-let result = Docopt.parse(help, argv: arguments, help: true, version: "1.0")
+if arguments.contains("-h") || arguments.contains("--help") {
+    print(help)
+    exit(0)
+}
 
-let encrypt = result["encrypt"] as? Int == 1
-let decrypt = result["decrypt"] as? Int == 1
-let cat = result["cat"] as? Int == 1
-let filepath = result["<filepath>"] as? String
-
-guard let filepath = filepath, (encrypt ^^ decrypt) ^^ cat else {
-    logger.fatal("Docopt failed. Consider opening an issue on Github.")
+guard arguments.count == 2 else {
+    print(help)
     exit(1)
 }
 
+guard let command = TopLevelCommand(rawValue: arguments[0]) else {
+    print(help)
+    exit(1)
+}
+let filepath = arguments[1]
+
 do {
-    if encrypt {
+    switch command {
+    case .encrypt:
         var pass: String
         var validation: String
 
@@ -50,12 +54,12 @@ do {
 
         let c = try Encryptor(filepath: filepath, logger: logger)
         try c.crypt(withPassword: pass)
-    } else if decrypt {
+    case .decrypt:
         let pass = CLI.getPassword()
 
         let c = try Decryptor(filepath: filepath, logger: logger)
         try c.crypt(withPassword: pass)
-    } else if cat {
+    case .cat:
         let pass = CLI.getPassword()
 
         let c = try Decryptor(filepath: filepath, logger: logger)
