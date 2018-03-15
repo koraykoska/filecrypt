@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ObjectiveC
 
 /**
  * A buffered reader for files.
