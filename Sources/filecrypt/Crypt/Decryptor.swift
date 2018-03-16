@@ -65,13 +65,13 @@ class Decryptor {
         logger?.debug("Generating HMAC signature...")
 
         guard let hmacClear = HMAC(using: .sha256, key: pass).update(byteArray: final)?.final() else {
-            throw CryptException.Crypt.encryptionFailed(details: "HMAC signature generation failed...")
+            throw CryptException.Crypt.decryptionFailed(details: "HMAC signature generation failed...")
         }
 
         logger?.debug("Checking HMAC signature...")
 
         guard hmac.elementsEqual(hmacClear) else {
-            throw CryptException.Crypt.encryptionFailed(details: "Signature verification failed. It looks like your password is incorrect. Please re-check it.")
+            throw CryptException.Crypt.decryptionFailed(details: "Signature verification failed. It looks like your password is incorrect. Please re-check it.")
         }
 
         if !dry {
