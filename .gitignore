@@ -8,3 +8,23 @@
 
 # idea files
 .idea/
+
+# Swift Stuff
+Packages
+.build
+xcuserdata
+*.xcodeproj
+DerivedData/
+.DS_Store
+db.sqlite
+.swiftpm
+.env
+
+# TODO: What is that? Is being generated. Please debug.
+/Extensions/
+
+# DevData
+.devcontainer/devdata
+
+# Some weird file
+/core
